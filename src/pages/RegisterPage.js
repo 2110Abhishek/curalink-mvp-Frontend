@@ -25,6 +25,11 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const BACKEND_URL = "https://curalink-mvp-backend.onrender.com";
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 
+    "743917778455-a32paa95v5forlmffmtq4gvjq7rrajda.apps.googleusercontent.com";
+
+  // Password rules
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   const passwordChecks = {
@@ -34,6 +39,7 @@ export default function RegisterPage() {
     letter: /[A-Za-z]/.test(form.password),
   };
 
+  // Manual registration
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -46,7 +52,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await axios.post("https://curalink-mvp-backend.onrender.com/api/auth/register", {
+      await axios.post(`${BACKEND_URL}/api/auth/register`, {
         ...form,
         role,
       });
@@ -59,10 +65,11 @@ export default function RegisterPage() {
     }
   };
 
+  // Google registration / login
   const handleGoogleRegister = async (credentialResponse) => {
     try {
       const token = credentialResponse.credential;
-      const res = await axios.post("https://curalink-mvp-backend.onrender.com/api/auth/google", {
+      const res = await axios.post(`${BACKEND_URL}/api/auth/google`, {
         token,
         role,
       });
@@ -72,15 +79,16 @@ export default function RegisterPage() {
           ? "/researcher-dashboard"
           : "/patient-dashboard"
       );
-    } catch {
+    } catch (error) {
+      console.error("Google registration failed:", error);
       alert("Google registration failed. Please try again.");
     }
   };
 
   return (
-    <GoogleOAuthProvider clientId="743917778455-a32paa95v5forlmffmtq4gvjq7rrajda.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated Background */}
+        {/* Background Orbs */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
@@ -105,7 +113,7 @@ export default function RegisterPage() {
           </motion.button>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Left Side - Branding */}
+            {/* Left Section */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -120,18 +128,17 @@ export default function RegisterPage() {
                   Join CuraLink
                 </h1>
                 <p className="text-blue-200 text-lg mb-8">
-                  {role === 'patient' 
-                    ? 'Start your personalized health journey today'
-                    : 'Connect with patients and advance medical research'
-                  }
+                  {role === "patient"
+                    ? "Start your personalized health journey today"
+                    : "Connect with patients and advance medical research"}
                 </p>
-                
+
                 <div className="space-y-4 text-left">
                   {[
                     "AI-powered recommendations",
                     "Secure & private platform",
                     "Global network of experts",
-                    "Real-time updates"
+                    "Real-time updates",
                   ].map((feature, index) => (
                     <motion.div
                       key={feature}
@@ -148,7 +155,7 @@ export default function RegisterPage() {
               </div>
             </motion.div>
 
-            {/* Right Side - Form */}
+            {/* Right Section (Form) */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -156,9 +163,7 @@ export default function RegisterPage() {
               className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 p-8"
             >
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white">
-                  Create Account
-                </h2>
+                <h2 className="text-2xl font-bold text-white">Create Account</h2>
                 <p className="text-blue-200">
                   {role.charAt(0).toUpperCase() + role.slice(1)} Registration
                 </p>
@@ -175,39 +180,39 @@ export default function RegisterPage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Field */}
+                {/* Name */}
                 <div className="space-y-2">
-                  <label className="text-white/80 text-sm font-medium flex items-center space-x-2">
+                  <label className="text-white/80 text-sm flex items-center space-x-2">
                     <User className="w-4 h-4" />
                     <span>Full Name</span>
                   </label>
                   <input
                     type="text"
                     placeholder="Enter your full name"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
                   />
                 </div>
 
-                {/* Email Field */}
+                {/* Email */}
                 <div className="space-y-2">
-                  <label className="text-white/80 text-sm font-medium flex items-center space-x-2">
+                  <label className="text-white/80 text-sm flex items-center space-x-2">
                     <Mail className="w-4 h-4" />
                     <span>Email Address</span>
                   </label>
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
                   />
                 </div>
 
-                {/* Password Field */}
+                {/* Password */}
                 <div className="space-y-2">
-                  <label className="text-white/80 text-sm font-medium flex items-center space-x-2">
+                  <label className="text-white/80 text-sm flex items-center space-x-2">
                     <Lock className="w-4 h-4" />
                     <span>Password</span>
                   </label>
@@ -215,26 +220,28 @@ export default function RegisterPage() {
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Create a strong password"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all pr-12"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 pr-12"
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
 
-                  {/* Password Requirements */}
+                  {/* Password Checks */}
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="bg-white/5 rounded-2xl p-4 mt-3 space-y-2"
                   >
-                    <p className="text-white/60 text-sm font-medium mb-2">Password Requirements:</p>
+                    <p className="text-white/60 text-sm font-medium mb-2">
+                      Password Requirements:
+                    </p>
                     {Object.entries(passwordChecks).map(([key, isValid]) => (
                       <div key={key} className="flex items-center space-x-2">
                         {isValid ? (
@@ -242,31 +249,37 @@ export default function RegisterPage() {
                         ) : (
                           <XCircle className="w-4 h-4 text-red-400" />
                         )}
-                        <span className={`text-sm ${isValid ? 'text-green-300' : 'text-red-300'}`}>
-                          {key === 'length' && 'At least 8 characters'}
-                          {key === 'number' && 'Contains a number'}
-                          {key === 'special' && 'Contains a special character'}
-                          {key === 'letter' && 'Contains a letter'}
+                        <span
+                          className={`text-sm ${
+                            isValid ? "text-green-300" : "text-red-300"
+                          }`}
+                        >
+                          {key === "length" && "At least 8 characters"}
+                          {key === "number" && "Contains a number"}
+                          {key === "special" && "Contains a special character"}
+                          {key === "letter" && "Contains a letter"}
                         </span>
                       </div>
                     ))}
                   </motion.div>
                 </div>
 
-                {/* Register Button */}
+                {/* Submit */}
                 <motion.button
                   type="submit"
                   disabled={isLoading}
                   whileHover={{ scale: isLoading ? 1 : 1.02 }}
                   whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <Shield className="w-5 h-5" />
                   )}
-                  <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
+                  <span>
+                    {isLoading ? "Creating Account..." : "Create Account"}
+                  </span>
                 </motion.button>
 
                 {/* Divider */}
@@ -274,7 +287,7 @@ export default function RegisterPage() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/10"></div>
                   </div>
-                  <div className="relative bg-transparent px-4">
+                  <div className="relative px-4">
                     <span className="text-white/40 text-sm">or continue with</span>
                   </div>
                 </div>
@@ -296,7 +309,7 @@ export default function RegisterPage() {
                   Already have an account?{" "}
                   <Link
                     to={`/login?role=${role}`}
-                    className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
+                    className="text-blue-300 hover:text-blue-200 font-semibold"
                   >
                     Sign in here
                   </Link>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Eye, 
   EyeOff, 
@@ -22,12 +22,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const BACKEND_URL = "https://curalink-mvp-backend.onrender.com";
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 
+    "743917778455-a32paa95v5forlmffmtq4gvjq7rrajda.apps.googleusercontent.com";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const res = await axios.post("https://curalink-mvp-backend.onrender.com/api/auth/login", {
+      const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {
         ...form,
         role,
       });
@@ -47,7 +51,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async (credentialResponse) => {
     try {
       const token = credentialResponse.credential;
-      const res = await axios.post("https://curalink-mvp-backend.onrender.com/api/auth/google", {
+      const res = await axios.post(`${BACKEND_URL}/api/auth/google`, {
         token,
         role,
       });
@@ -57,15 +61,15 @@ export default function LoginPage() {
           ? "/researcher-dashboard"
           : "/patient-dashboard"
       );
-    } catch {
+    } catch (err) {
       alert("Google login failed. Please try again.");
     }
   };
 
   return (
-    <GoogleOAuthProvider clientId="743917778455-a32paa95v5forlmffmtq4gvjq7rrajda.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated Background */}
+        {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
@@ -90,62 +94,39 @@ export default function LoginPage() {
 
           {/* Login Card */}
           <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
-            {/* Header */}
             <div className="p-8 border-b border-white/10">
               <div className="flex items-center justify-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Welcome Back
-                  </h2>
+                  <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
                   <p className="text-blue-200 text-sm">
                     {role.charAt(0).toUpperCase() + role.slice(1)} Portal
                   </p>
                 </div>
               </div>
-
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-blue-300" />
-                  <div>
-                    <p className="text-white text-sm font-semibold">
-                      {role === 'patient' ? 'Patient Access' : 'Researcher Access'}
-                    </p>
-                    <p className="text-blue-200 text-xs">
-                      {role === 'patient' 
-                        ? 'Access your health journey' 
-                        : 'Manage your research portfolio'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* Email Field */}
+              {/* Email */}
               <div className="space-y-2">
-                <label className="text-white/80 text-sm font-medium flex items-center space-x-2">
+                <label className="text-white/80 text-sm flex items-center space-x-2">
                   <Mail className="w-4 h-4" />
                   <span>Email Address</span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    required
-                  />
-                </div>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div className="space-y-2">
-                <label className="text-white/80 text-sm font-medium flex items-center space-x-2">
+                <label className="text-white/80 text-sm flex items-center space-x-2">
                   <Lock className="w-4 h-4" />
                   <span>Password</span>
                 </label>
@@ -153,14 +134,14 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all pr-12"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-400 pr-12"
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -173,7 +154,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 whileHover={{ scale: isLoading ? 1 : 1.02 }}
                 whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -188,7 +169,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/10"></div>
                 </div>
-                <div className="relative bg-transparent px-4">
+                <div className="relative px-4">
                   <span className="text-white/40 text-sm">or continue with</span>
                 </div>
               </div>
@@ -205,12 +186,11 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Register Link */}
               <p className="text-center text-white/60 text-sm">
                 Don't have an account?{" "}
                 <a
                   href={`/register?role=${role}`}
-                  className="text-blue-300 hover:text-blue-200 font-semibold transition-colors"
+                  className="text-blue-300 hover:text-blue-200 font-semibold"
                 >
                   Create account
                 </a>
